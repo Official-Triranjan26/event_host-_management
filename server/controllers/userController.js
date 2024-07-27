@@ -1,8 +1,9 @@
 const generateToken = require("../config/generateToken");
 const UserModel = require("../models/userAdminModel");
-
+const {LocalStorage}=require("node-localstorage")
 
 const authLogin = async (req,res) => {
+    localStorage = new LocalStorage('./local')
     const {role,email,password}=req.body;
   
     if(!email || !password){
@@ -16,6 +17,11 @@ const authLogin = async (req,res) => {
     // console.log(user)
     // const ref = 
     if(user && (await user.matchPassword(password)) && (role===user.role)){
+      if(role==='user'){
+        localStorage.setItem("userId",user._id);
+      }else if(role==='admin'){
+        localStorage.setItem("adminId",user._id);
+      }
       return res.json({
         _id: user._id,
         name: user.name,
@@ -35,7 +41,7 @@ const authLogin = async (req,res) => {
   
 
 const authSignup = async (req, res) => {
-    const { name, email, password, pic,role } = req.body;
+    const { name, email, password, picUrl,role } = req.body;
     if (!name || !email || !password ||!role) {
       return res.status(400).json({
         success: false,
@@ -54,7 +60,7 @@ const authSignup = async (req, res) => {
       name,
       email,
       password,
-      pic,
+      pic:picUrl,
       role
     });
     console.log(newUser);

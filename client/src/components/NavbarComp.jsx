@@ -3,11 +3,13 @@ import { Button } from "flowbite-react";
 import { Navbar } from "flowbite-react";
 import logo from "../images/logo.png"
 import { Link, useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
+
 
 const NavbarComp = () => {
   return (
-   <div className=' w-full px-4'>
-     <Navbar   className='bg-white sm:px-4 px-8 py-2.5 dark:border-gray-700 dark:bg-gray-800 '>
+   <div className=' w-full px-4 fixed z-50'>
+     <Navbar   className='bg-white sm:px-4 px-8 py-2.5 dark:border-gray-700 dark:bg-gray-800'>
         <Navbar.Brand href="https://flowbite-react.com">
         <img src={logo} className="mr-3 h-6 sm:h-9" alt="Flowbite React Logo" />
         <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">Flowbite React</span>
@@ -28,5 +30,21 @@ const NavbarComp = () => {
    </div>
   )
 }
+
+export const AuthNav = () => {
+  let navigate=useNavigate();
+  return (
+    <>
+      <div className=' w-full h-10 bg-gray-200 flex mb-4 py-1 px-4 items-center'>
+        <FaArrowLeft 
+          className='text-2xl cursor-pointer'
+          onClick={()=>navigate("/")}
+        />
+      </div>
+    </>
+  )
+}
+
+
 
 export default NavbarComp

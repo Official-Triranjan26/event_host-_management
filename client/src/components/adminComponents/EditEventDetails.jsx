@@ -1,13 +1,10 @@
-import React, { useState, useEffect,useRef } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import React, { useState,useRef } from "react";
 import {
   Button,
   FileInput,
   Label,
   Select,
   TextInput,
-  // Datepicker,
   Tooltip,
 } from "flowbite-react";
 import {
@@ -16,41 +13,49 @@ import {
   FaLocationCrosshairs,
 } from "react-icons/fa6";
 import { IoTicketOutline } from "react-icons/io5";
-import { MdOutlineDelete } from "react-icons/md";
-import {
-  IoMdAdd,
-  IoMdCloudUpload,
-  IoIosInformationCircleOutline,
-} from "react-icons/io";
+import { IoMdAdd, IoMdCloudUpload } from "react-icons/io";
 import { ToastContainer } from "react-toastify";
+import { MdOutlineDelete } from "react-icons/md";
+import { FaRegSave } from "react-icons/fa";
 import showToastMessage from "../Toast";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import dayjs from "dayjs";
 import ImageModal from "./ImageModal";
+import ArtistModal from "./ArtistModal";
 
-const PostAnEvent = () => {
+const EditEventDetails = () => {
+  const getFormattedDate = (dateStr) => {
+    const date = dayjs(dateStr);
+    return date.format("YYYY-MM-DD");
+  };
+
   let navigate = useNavigate();
-  const fileInputRef = useRef(null);
-  const [eventName, setEventName] = useState("");
-  const [eventType, setEventType] = useState("");
-  const [language, setLanguage] = useState("");
-  const [duration, setDuration] = useState("");
-  const [startingDate, setStartingDate] = useState();
-  const [endingDate, setEndingDate] = useState();
-  const [city, setCity] = useState("");
-  const [ticketPrice, setTicketPrice] = useState("");
-  const [noOfTicket, setNoOfTickets] = useState("");
-  const [bookingDeadline, setBookingDeadline] = useState();
-  const [latitude, setLatitude] = useState();
-  const [longitude, setLongitude] = useState();
-  const [openModal, setOpenModal] = useState(false);
+  const location = useLocation();
+  const dataReceived = location.state;
+  console.log(dataReceived);
+  // console.log(dataReceived.instructions);
+  const [eventName, setEventName] = useState(dataReceived.eventName);
+  const [eventType, setEventType] = useState(dataReceived.eventType);
+  const [language, setLanguage] = useState(dataReceived.language);
+  const [duration, setDuration] = useState(dataReceived.duration);
+  const [startingDate, setStartingDate] = useState(dataReceived.startingDate);
+  const [endingDate, setEndingDate] = useState(dataReceived.endingDate);
+  const [city, setCity] = useState(dataReceived.city);
+  const [ticketPrice, setTicketPrice] = useState(dataReceived.ticketPrice);
+  const [noOfTicket, setNoOfTickets] = useState(dataReceived.noOfTicket);
+  const [bookingDeadline, setBookingDeadline] = useState(
+    dataReceived.bookingDeadline
+  );
+  const [latitude, setLatitude] = useState(dataReceived.latitude);
+  const [longitude, setLongitude] = useState(dataReceived.longitude);
   const [loading, setLoading] = useState(false);
 
   const [image, setImage] = useState();
-  const [imageUrl, setImageUrl] = useState([]);
-  // const [openModal, setOpenModal] = useState(false);
+  const [imageUrl, setImageUrl] = useState(dataReceived.imageUrl);
+  const [openModal, setOpenModal] = useState(false);
   const fileInputRef1 = useRef(null);
-  // const fileInputRef = useRef(null);
+  const fileInputRef2 = useRef(null);
   const deleteImage = (index)=>{
     const newImageArr = imageUrl.slice();
     if (index >= 0 && index < newImageArr.length) {
@@ -92,11 +97,13 @@ const PostAnEvent = () => {
     setTempIndex(index)
   }
 
-  const [artists, setArtists] = useState([]);
+  const [artists, setArtists] = useState(dataReceived.artists);
   console.log(artists);
   const [artistName, setArtistName] = useState();
   const [artistPic, setArtistPic] = useState();
   const [artistPicUrl, setArtistPicUrl] = useState();
+  const [artistModalOpen,setArtistModalOpen]=useState(false);
+  const [tempArtist,setTempArtist]=useState();
 
   const handleArtistPicUpload = async () => {
     const pic = artistPic;
@@ -147,44 +154,96 @@ const PostAnEvent = () => {
       setArtists(newArr);
       showToastMessage("success", "Artist added !!");
       console.log(artists);
-      fileInputRef.current.value = null;
+      fileInputRef2.current.value = null;
       setArtistName("");
     } catch (error) {
       showToastMessage("error", { error });
     }
   };
 
-  const [activities, setActivities] = useState([""]);
-  const addActivities = () => {
-    setActivities([...activities, ""]);
-  };
-  const handleActivityChange = (index, event) => {
+  const deleteArtist=(index)=>{
+    const tempArr=artists.slice();
+    if (index >= 0 && index < tempArr.length) {
+      tempArr.splice(index, 1);
+    }
+    setArtists(tempArr);
+  }
+  const getAnArtist = async(index)=>{
+    setArtistModalOpen(true)
+    const artist=artists[index];
+    // console.log("hey",artist)
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+        },
+      };
+      const  {data}  = await axios.get(`http://localhost:4000/api/admin/getAnArtist/${artist}`,config);
+      // if(!data) showToastMessage("error","failed to fetch artist details !!");
+      console.log("data",data)
+      setTempArtist(data);
+    } catch (error) {
+      showToastMessage("error", { error });
+    }
+  }
+
+  const [activities, setActivities] = useState(dataReceived.activities);
+  const [activity, setActivity] = useState();
+  // console.log(activities);
+  const removeActivity = (index) => {
     const newActivity = activities.slice();
-    // console.log(newActivity);
-    newActivity[index] = event.target.value;
+    if (index >= 0 && index < newActivity.length) {
+      newActivity.splice(index, 1);
+    }
     setActivities(newActivity);
   };
-
-  const [facilities, setFacilities] = useState([""]);
-  const addFacilities = () => {
-    setFacilities([...facilities, ""]);
+  const saveActivity = (activity) => {
+    // console.log(activity);
+    if (activity === "") return;
+    const newActivity = activities.slice();
+    newActivity.push(activity);
+    setActivities(newActivity);
+    setActivity("");
   };
-  const handleFacilityChange = (index, event) => {
+
+  const [facilities, setFacilities] = useState(dataReceived.facilities);
+  const [facility, setFacility] = useState();
+
+  const removeFacility = (index) => {
     const newFacility = facilities.slice();
-    // console.log(newFacility);
-    newFacility[index] = event.target.value;
+    if (index >= 0 && index < newFacility.length) {
+      newFacility.splice(index, 1);
+    }
     setFacilities(newFacility);
   };
 
-  const [instructions, setInstructions] = useState([""]);
-  const addInstructions = () => {
-    setInstructions([...instructions, ""]);
+  const saveFacility = (facility) => {
+    if (facility === "") return;
+    const newFacility = facilities.slice();
+    newFacility.push(facility);
+    setFacilities(newFacility);
+    setFacility("");
   };
-  const handleInstructionChange = (index, event) => {
-    const newInstruction = instructions.slice();
-    // console.log(newInstruction);
-    newInstruction[index] = event.target.value;
-    setInstructions(newInstruction);
+
+  const [instructions, setInstructions] = useState(dataReceived.instructions);
+  const [instruction, setInstruction] = useState();
+
+  // console.log(instructions);
+
+  const removeInstruction = (index) => {
+    const newActivity = instructions.slice();
+    if (index >= 0 && index < newActivity.length) {
+      newActivity.splice(index, 1);
+    }
+    setInstructions(newActivity);
+  };
+  const saveInstruction = (instruction) => {
+    // console.log(instruction);
+    if (instruction === "") return;
+    const newActivity = instructions.slice();
+    newActivity.push(instruction);
+    setInstructions(newActivity);
+    setInstruction("");
   };
 
   const submit = async () => {
@@ -206,15 +265,14 @@ const PostAnEvent = () => {
       return;
     }
     setLoading(true);
-
     try {
       const config = {
         headers: {
           "Content-type": "application/json",
         },
       };
-      const { data } = await axios.post(
-        "http://localhost:4000/api/admin/postEvent",
+      const { data } = await axios.put(
+        `http://localhost:4000/api/admin/manageEvent/edit/${dataReceived._id}`,
         {
           eventName,
           eventType,
@@ -238,8 +296,8 @@ const PostAnEvent = () => {
       );
       console.log(data);
       setLoading(false);
-      showToastMessage("success", "Product Posted Successfully !");
-      navigate("/admin/manageEvent");
+      showToastMessage("success", "Event Details Updated Successfully !");
+      navigate(`/admin/manageEvent/${dataReceived._id}`);
     } catch (error) {
       showToastMessage("error", { error });
     }
@@ -256,7 +314,7 @@ const PostAnEvent = () => {
 
           {/* Event Name  */}
           <div>
-            <Label htmlFor="name" value="Event Name" className="flex mb-4" />
+            <Label htmlFor="name" value="Event Name" className="flex mb-2" />
             <TextInput
               id="name"
               type="text"
@@ -273,7 +331,7 @@ const PostAnEvent = () => {
               <Label
                 htmlFor="catagory"
                 value="Event Catagory"
-                className="flex mb-4"
+                className="flex mb-2"
               />
             </div>
             <Select
@@ -296,7 +354,7 @@ const PostAnEvent = () => {
               <Label
                 htmlFor="language"
                 value="Language"
-                className="flex mb-4"
+                className="flex mb-2"
               />
             </div>
             <Select
@@ -317,7 +375,7 @@ const PostAnEvent = () => {
             <Label
               htmlFor="duration"
               value="Event Duration"
-              className="flex mb-4"
+              className="flex mb-2"
             />
             <TextInput
               id="duration"
@@ -333,13 +391,14 @@ const PostAnEvent = () => {
             <Label
               htmlFor="startingDate"
               value="Starting Date/Date of Event"
-              className="flex mb-4"
+              className="flex mb-2"
             />
             <div className="flex w-full">
+              {/* {console.log(startingDate)} */}
               <input
                 id="startingDate"
                 type="date"
-                value={startingDate}
+                value={getFormattedDate(startingDate)}
                 className="w-full bg-gray-100 border-none rounded-md"
                 onChange={(e) => setStartingDate(e.target.value)}
               />
@@ -350,21 +409,19 @@ const PostAnEvent = () => {
             <Label
               htmlFor="endingDate"
               value="Ending Date/Date of Event"
-              className="flex mb-4"
+              className="flex mb-2"
             />
-            <div className="flex w-full">
-              <input
-                id="endingDate"
-                type="date"
-                value={endingDate}
-                className="w-full bg-gray-100 border-none rounded-md"
-                onChange={(e) => setEndingDate(e.target.value)}
-              />
-            </div>
+            <input
+              id="endingDate"
+              type="date"
+              value={getFormattedDate(endingDate)}
+              className="w-full bg-gray-100 border-none rounded-md"
+              onChange={(e) => setEndingDate(e.target.value)}
+            />
           </div>
           {/* City  */}
           <div>
-            <Label htmlFor="city" value="City" className="flex mb-4" />
+            <Label htmlFor="city" value="City" className="flex mb-2" />
             <TextInput
               id="duration"
               icon={FaLocationDot}
@@ -377,7 +434,6 @@ const PostAnEvent = () => {
             />
           </div>
 
-          {/* Artist Details  */}
           <p className="py-4 font-bold text-2xl mb-4 text-black">
             Artist/Performer
           </p>
@@ -386,8 +442,12 @@ const PostAnEvent = () => {
           <div className="mb-4">
             {artists.map((artist, index) => {
               return (
-                <div className="w-full bg-gray-200 mb-2 rounded-md ">
-                  {`Artist ${index + 1}`}
+                <div className="flex justify-between w-full mb-1 bg-gray-200 px-4 py-1 rounded-md items-center text-wrap ">
+                  <p className="text-wrap text-lg text-blue-600 cursor-pointer underline" onClick={()=>getAnArtist(index)}> {`Artist ${index + 1}`}</p>
+                  <MdOutlineDelete
+                    className="text-2xl text-red-600 cursor-pointer flex w-6 "
+                    onClick={() => deleteArtist(index)}
+                  />
                 </div>
               );
             })}
@@ -411,7 +471,7 @@ const PostAnEvent = () => {
 
               <div className="flex flex-row w-full mb-1">
                 <input
-                  ref={fileInputRef}
+                  ref={fileInputRef2}
                   type="file"
                   className="w-full rounded-md bg-gray-200"
                   onChange={(e) => setArtistPic(e.target.files[0])}
@@ -430,6 +490,7 @@ const PostAnEvent = () => {
             </span>
             Add Artist
           </Button>
+          <ArtistModal artistModalOpen={artistModalOpen} setArtistModalOpen={setArtistModalOpen} details={tempArtist}/>
 
           <p className="py-4 font-bold text-2xl mb-4 text-black">
             Ticket Details
@@ -440,7 +501,7 @@ const PostAnEvent = () => {
             <Label
               htmlFor="ticketPrice"
               value="Ticket Price"
-              className="flex mb-4"
+              className="flex mb-2"
             />
             <TextInput
               id="ticketPrice"
@@ -458,7 +519,7 @@ const PostAnEvent = () => {
             <Label
               htmlFor="totalTicket"
               value="Total Number of Tickets "
-              className="flex mb-4"
+              className="flex mb-2"
             />
             <TextInput
               id="totalTicket"
@@ -475,17 +536,15 @@ const PostAnEvent = () => {
             <Label
               htmlFor="bookingDeadline"
               value="Deadline for Booking"
-              className="flex mb-4"
+              className="flex mb-2"
             />
-            <div className="flex w-full">
-              <input
-                id="startibookingDeadlinengDate"
-                type="date"
-                value={bookingDeadline}
-                className="w-full bg-gray-100 border-none rounded-md"
-                onChange={(e) => setBookingDeadline(e.target.value)}
-              />
-            </div>
+            <input
+              id="bookingDeadline"
+              type="date"
+              value={getFormattedDate(bookingDeadline)}
+              className="w-full bg-gray-100 border-none rounded-md"
+              onChange={(e) => setBookingDeadline(e.target.value)}
+            />
           </div>
 
           <p className="py-4 font-bold text-2xl mb-4 text-black">
@@ -493,53 +552,86 @@ const PostAnEvent = () => {
           </p>
 
           {/* Activities  */}
-          <div className="p-4 flex flex-col gap-4">
+          <div className="py-4 flex flex-col gap-4 w-full mx-auto">
             <Label
               value="Add Activities/Sub Events if any"
-              className="flex mb-4"
+              className="flex mb-2"
             />
-            {activities.map((input, index) => (
+
+            {/* {console.log(activities)}  */}
+            {activities.map((activity, index) => {
+              if (activity !== "") {
+                return (
+                  <div className="flex justify-between w-full mb-1 bg-gray-200 px-4 py-1 rounded-md items-center text-wrap">
+                    <p className="text-lg text-wrap text-start w-full">
+                      {activity}
+                    </p>
+                    <MdOutlineDelete
+                      className="text-2xl text-red-600 cursor-pointer flex w-6 "
+                      onClick={() => removeActivity(index)}
+                    />
+                  </div>
+                );
+              }
+            })}
+            <div className="flex w-full gap-2">
               <TextInput
-                className="my-2"
-                id={index}
+                className="my-2 w-full "
+                // id={index}
                 type="text"
-                value={activities[index]}
-                onChange={(e) => handleActivityChange(index, e)}
-                placeholder={`Activity/Sub Event ${index + 1}`}
+                value={activity}
+                onChange={(e) => setActivity(e.target.value)}
+                placeholder={`Activity/Sub Event `}
                 shadow
               />
-            ))}
-            <Button onClick={addActivities} className="whitespace-nowrap">
-              <span className="flex items-center  w-full h-full px-5">
-                <IoMdAdd className="text-2xl" />
-              </span>
-              Add Activity
-            </Button>
+              <Tooltip content="Add Activity/Sub event">
+                <Button onClick={() => saveActivity(activity)}>
+                  <FaRegSave className="text-xl" />
+                </Button>
+              </Tooltip>
+            </div>
           </div>
 
           <p className="py-4 font-bold text-2xl mb-4 text-black">Facilities</p>
 
           {/* Facilities  */}
-          <div className="p-4 flex flex-col gap-4">
-            <Label value="Add Facilities if any" className="flex mb-4" />
-            {facilities.map((input, index) => (
+          <div className="py-4 flex flex-col gap-4 w-full mx-auto">
+            <Label
+              value="Add Activities/Sub Events if any"
+              className="flex mb-2"
+            />
+            {/* {console.log(facilities)}  */}
+
+            {facilities?.map((facility, index) => {
+              if (facility != "") {
+                return (
+                  <div className="flex justify-between w-full mb-1 bg-gray-200 px-4 py-1 rounded-md items-center text-wrap">
+                    <p className="text-lg text-wrap text-start w-full">
+                      {facility}
+                    </p>
+                    <MdOutlineDelete
+                      className="text-2xl text-red-600 cursor-pointer flex w-6 "
+                      onClick={() => removeFacility(index)}
+                    />
+                  </div>
+                );
+              }
+            })}
+            <div className="flex w-full gap-2">
               <TextInput
-                className="my-2"
-                id={index}
+                className="my-2 w-full "
                 type="text"
-                value={facilities[index]}
-                onChange={(e) => handleFacilityChange(index, e)}
-                placeholder={`Facility ${index + 1}`}
-                // required
+                value={facility}
+                onChange={(e) => setFacility(e.target.value)}
+                placeholder={`Facility `}
                 shadow
               />
-            ))}
-            <Button onClick={addFacilities} className="whitespace-nowrap">
-              <span className="flex items-center  w-full h-full px-5">
-                <IoMdAdd className="text-2xl" />
-              </span>
-              Add Facility
-            </Button>
+              <Tooltip content="Add Facility">
+                <Button onClick={() => saveFacility(facility)}>
+                  <FaRegSave className="text-xl" />
+                </Button>
+              </Tooltip>
+            </div>
           </div>
 
           <p className="py-4 font-bold text-2xl mb-4 text-black">
@@ -547,26 +639,44 @@ const PostAnEvent = () => {
           </p>
 
           {/* Instructions  */}
-          <div className="p-4 flex flex-col gap-4">
-            <Label value="Instructions" className="flex pb-2" />
-            {instructions.map((input, index) => (
+          <div className="py-4flex flex-col gap-4 w-full mx-auto">
+            <Label
+              value="Add Activities/Sub Events if any"
+              className="flex mb-2"
+            />
+
+            {/* {console.log(instructions)} */}
+            {instructions.map((instruction, index) => {
+              if (instruction !== "") {
+                return (
+                  <div className="flex justify-between w-full mb-4 bg-gray-200 px-4 py-1 rounded-md items-center text-wrap">
+                    <p className="text-lg text-wrap text-start w-full">
+                      {instruction}
+                    </p>
+                    <MdOutlineDelete
+                      className="text-2xl text-red-600 cursor-pointer flex w-6 "
+                      onClick={() => removeInstruction(index)}
+                    />
+                  </div>
+                );
+              }
+            })}
+            <div className="flex w-full gap-2">
               <TextInput
-                className="my-2"
-                id={index}
+                className="my-2 w-full "
+                // id={index}
                 type="text"
-                value={instructions[index]}
-                onChange={(e) => handleInstructionChange(index, e)}
-                placeholder={`Instruction ${index + 1}`}
-                // required
+                value={instruction}
+                onChange={(e) => setInstruction(e.target.value)}
+                placeholder={`Activity/Sub Event `}
                 shadow
               />
-            ))}
-            <Button className="whitespace-nowrap" onClick={addInstructions}>
-              <span className="flex items-center  w-full h-full px-5">
-                <IoMdAdd className="text-2xl" />
-              </span>
-              Add Instruction
-            </Button>
+              <Tooltip content="Add Activity/Sub event">
+                <Button onClick={() => saveInstruction(instruction)}>
+                  <FaRegSave className="text-xl" />
+                </Button>
+              </Tooltip>
+            </div>
           </div>
 
           <p className="py-4 font-bold text-2xl mb-4 text-black">Maplocation</p>
@@ -594,7 +704,7 @@ const PostAnEvent = () => {
             <Label
               htmlFor="longitude"
               value="Provide pressice Longitude "
-              className="flex mb-4"
+              className="flex mb-2"
             />
             <TextInput
               id="longitude"
@@ -607,9 +717,7 @@ const PostAnEvent = () => {
               shadow
             />
           </div>
-          
 
-          {/* poster  */}
           <p className="py-4 font-bold text-2xl mb-4 text-black">
             Upload Images
           </p>
@@ -652,25 +760,30 @@ const PostAnEvent = () => {
                 </Button>
               </div>
             </div>
-            </div>
-          {/* <div className="w-full">
-            <input id="hello" type="file" className="w-full rounded-md bg-gray-200" />
-          </div> */}
-          {/* <button onClick={temp}>click</button> */}
+            {/* <Button
+              onClick={addImage}
+              className="mt-4 whitespace-nowrap w-full"
+            >
+              <span className="flex items-center  w-full h-full px-5">
+                <IoMdAdd className="text-2xl" />
+              </span>
+              Add Poster
+            </Button> */}
+          </div>
 
           <div className="flex flex-row items-center justify-center">
             <Button
               color="dark"
               // type="button"
               onClick={submit}
-              className="flex items-center justify-center w-full p- rounded-md text-white mt-4 "
+              className="flex items-center justify-center w-full p- rounded-md text-white mt-5 "
               isProcessing={loading}
               disabled={loading}
             >
               <span className="font-medium">
                 {" "}
                 {/* Post Event */}
-                {loading ? "Processing... " : "Post Event"}
+                {loading ? "Processing... " : "Update Event Details"}
               </span>
             </Button>
           </div>
@@ -681,4 +794,4 @@ const PostAnEvent = () => {
   );
 };
 
-export default PostAnEvent;
+export default EditEventDetails;
