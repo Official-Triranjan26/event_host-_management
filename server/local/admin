@@ -1,0 +1,9 @@
+{
+  _id: new ObjectId('66911ac2c20c21a282716cec'),
+  name: 'Subha',
+  email: 'subha@email.com',
+  password: '$2a$10$LK1ts7fZFSwe2EdUQ09W1uPp2ZYOMA2I5DpSKe9nPVpj4ON48TlXe',
+  pic: 'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg',
+  role: 'admin',
+  __v: 0
+}

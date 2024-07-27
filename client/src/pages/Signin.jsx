@@ -10,6 +10,7 @@ import showToastMessage from '../components/Toast';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer } from 'react-toastify';
+import { AuthNav } from "../components/NavbarComp";
 
 const Signin = () => {
   let navigate = useNavigate();
@@ -47,7 +48,7 @@ const Signin = () => {
       if(data.role=='user'){
         navigate("/home");
       }else if(data.role=='admin'){
-        navigate("/admin");
+        navigate("/admin/dashboad");
       }
     } catch (error) {
       showToastMessage("error", "Invalid credentials !!");
@@ -59,6 +60,7 @@ const Signin = () => {
 
   return (
     <>
+      <AuthNav/>
       <div className=" ">
         <p className="py-4 font-bold text-2xl mb-4 text-black">Sign In</p>
         <form className="px-4 flex mx-auto max-w-md flex-col gap-4">
@@ -66,7 +68,7 @@ const Signin = () => {
             <Label
               htmlFor="role"
               value="Log in as"
-              className="flex pb-2"
+              className="flex mb-4"
             />
             <div className=" flex gap-3">
               <div className="flex gap-2 items-center p-4 w-full border border-gray-300 rounded dark:border-gray-700">
@@ -94,7 +96,7 @@ const Signin = () => {
           </div>
 
           <div>
-            <Label htmlFor="email" value="Email" className="flex pb-2" />
+            <Label htmlFor="email" value="Email" className="flex mb-4" />
             <TextInput
               id="email"
               type="email"
@@ -106,7 +108,7 @@ const Signin = () => {
             />
           </div>
           <div>
-            <Label htmlFor="password" value="Password" className="flex pb-2" />
+            <Label htmlFor="password" value="Password" className="flex mb-4" />
             <TextInput
               id="password"
               type="password"
